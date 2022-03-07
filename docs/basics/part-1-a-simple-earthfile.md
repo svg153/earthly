@@ -2,13 +2,6 @@
 
 All the magic of Earthly happens in the Earthfile. Earthfiles are always named `Earthfile`, regardless of their location in the codebase. Below you'll find several example Earthfiles. 
 
-- [Go](#go) 
-- [JavaScript](#javascript) 
-- [Java](#java)
-- [Python](#python)
-
-
-### Go
 <details open>
 <summary>Go</summary>
 
@@ -27,8 +20,6 @@ docker:
     ENTRYPOINT ["/go-example/go-example"]
     SAVE IMAGE go-example:latest
 ```
-</details>
-
 `./Earthfile`
 
 The code of the app might look like this
@@ -58,8 +49,11 @@ earthly --artifact github.com/earthly/earthly/examples/tutorial/go:main+part1/pa
 ```
 
 {% endhint %}
+</details>
 
-### JavaScript
+
+<details open>
+<summary>JavaScript</summary>
 
 `./Earthfile`
 
@@ -101,8 +95,11 @@ earthly --artifact github.com/earthly/earthly/examples/tutorial/js:main+part1/pa
 ```
 
 {% endhint %}
+</details>
 
-### Java
+
+<details open>
+<summary>Java</summary>
 
 `./Earthfile`
 
@@ -171,9 +168,11 @@ earthly --artifact github.com/earthly/earthly/examples/tutorial/java:main+part1/
 ```
 
 {% endhint %}
+</details>
 
-### Python
 
+<details open>
+<summary>Python</summary>
 `./Earthfile`
 
 ```Dockerfile
@@ -213,6 +212,8 @@ earthly --artifact github.com/earthly/earthly/examples/tutorial/python:main+part
 ```
 
 {% endhint %}
+
+</details>
 
 From the example above, you may notice that an Earthfile is very similar to a Dockerfile. This is an intentional design decision. Existing Dockerfiles can easily be ported to Earthly by copying them to an Earthfile and tweaking them slightly.
 
