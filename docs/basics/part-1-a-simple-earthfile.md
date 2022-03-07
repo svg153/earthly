@@ -9,8 +9,8 @@ All the magic of Earthly happens in the Earthfile. Earthfiles are always named `
 
 
 ### Go
-
-`./Earthfile`
+<details open>
+<summary>Go</summary>
 
 ```Dockerfile
 VERSION 0.6
@@ -27,6 +27,9 @@ docker:
     ENTRYPOINT ["/go-example/go-example"]
     SAVE IMAGE go-example:latest
 ```
+</details>
+
+`./Earthfile`
 
 The code of the app might look like this
 
