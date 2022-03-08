@@ -47,7 +47,7 @@ The first commands in the file are part of the `base` target and are implicitly 
 
 Lastly we change our working directory to `/go-example`. So far very similar to a docker file.
 
-## Crearing Our First Target
+## Creating Our First Target
 Earthly aims to replace Dockerfile, makefile, bash scripts and more. We can take all the setup, configuration and build steps we'd normally define in those files and put them in our Earthfile in the form of `targets`.
 
 Let's start by defining a target to build our simple Go app. (This target may be invoked from the command line as `earthly +build`.)
@@ -58,8 +58,10 @@ build:
     RUN go build -o build/go-example main.go
     SAVE ARTIFACT build/go-example /go-example AS LOCAL build/go-example
 ```
-The first thing we do i is copy our `main.go` from the build context (the directory where the Earthfile resides) to the build environment (the containerized environment where Earthly commands are run).
-Next we run a go build command against the previously copied `main.go` file. Lastly, we save the output of the build command as an artifact. Call this artifact `/go-example` (it can be later referenced as `+build/go-example`). In addition, store the artifact as a local file (on the host) named `build/go-example`. This local file is only written if the entire build succeeds.
+The first thing we do is copy our `main.go` from the build context (the directory where the Earthfile resides) to the build environment (the containerized environment where Earthly commands are run).
+Next we run a go build command against the previously copied `main.go` file.
+
+Lastly, we save the output of the build command as an artifact. Call this artifact `/go-example` (it can be later referenced as `+build/go-example`). In addition, store the artifact as a local file (on the host) named `build/go-example`. This local file is only written if the entire build succeeds.
 
 Declare a target, `docker`.
 
@@ -78,7 +80,29 @@ Copy the artifact `/go-example` produced by another target, `+build`, to the cur
 Set the entrypoint for the resulting docker image.
 Save the current state as a docker image, which will have the docker tag `go-example:latest`. This image is only made available to the host's docker if the entire build succeeds.
 
-# Running the build
+## Target Enviorments
+
+Notice how we already had Go installed for both our `+build` and `+docker` targets. This is because  targets inherit from the base target which for us was the `FROM golang:1.15-alpine3.13` that we set up at the top of the file, but it's worth nothing that targets can define their own docker enviorments. For example:
+
+```Dockerfile
+VERSION 0.6
+FROM golang:1.15-alpine3.13
+WORKDIR /go-example
+
+build:
+    COPY main.go .
+    RUN go build -o build/go-example main.go
+    SAVE ARTIFACT build/go-example /go-example AS LOCAL build/go-example
+
+npm:
+    FROM node:12-alpine3.12
+    WORKDIR /src
+    RUN npm install
+    COPY assets/ .
+    RUN npm test
+```
+
+## Running the build
 
 In the example `Earthfile` we have defined two explicit targets: `+build` and `+docker`. When we run Earthly, we can tell it to execute either target by passing the target name. In this case our docker target calls on our build target, so we can run both with:
 
@@ -99,6 +123,10 @@ Furthermore, the fact that the `docker` target depends on the `build` target is 
 Finally, notice how the output of the build (the docker image and the files) are only written after the build is declared a success. This is due to another isolation principle of Earthly: a build either succeeds completely or it fails altogether.
 
 Once the build has executed, we can run the resulting docker image to try it out:
+
+```
+docker run --rm go-example:latest
+```
 
 ### Examples in Other Languages
 <details open>
@@ -199,8 +227,6 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 ```
 
-{% hint style='info' %}
-
 ##### Note
 
 To copy the files for [this example ( Part 1 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/java/part1) run
@@ -210,8 +236,6 @@ mkdir tutorial
 cd tutorial
 earthly --artifact github.com/earthly/earthly/examples/tutorial/java:main+part1/part1 ./part1
 ```
-
-{% endhint %}
 </details>
 
 
@@ -243,8 +267,6 @@ The code of the app might look like this
 print("hello world")
 ```
 
-{% hint style='info' %}
-
 ##### Note
 
 To copy the files for [this example ( Part 1 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/python/part1) run
@@ -254,8 +276,6 @@ mkdir tutorial
 cd tutorial
 earthly --artifact github.com/earthly/earthly/examples/tutorial/python:main+part1/part1 ./part1
 ```
-
-{% endhint %}
 
 </details>
 

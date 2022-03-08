@@ -1,14 +1,14 @@
 
 # Adding dependencies
 
-Now Let's imagine that we want to add some dependancies to our app. Here's how our build might look as a result.
+To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/go/part3) run
 
-- [Go](#go) 
-- [JavaScript](#javascript) 
-- [Java](#java)
-- [Python](#python)
+```bash
+earthly --artifact github.com/earthly/earthly/examples/tutorial/go:main+part3/part3 ./part3
+```
 
-### Go
+
+Now let's imagine that we want to add some dependancies to our app. In Go, that means adding `go.mod` and `go.sum`. See below for examples in [Python](#examples-in-other-languages), [Javascript](#examples-in-other-languages) and [Java](#examples-in-other-languages).
 
 `./go.mod`
 
@@ -39,7 +39,7 @@ func main() {
 }
 ```
 
-The build then might become
+Now we can update our Earthfile to copy in the 
 
 `./Earthfile`
 
@@ -59,19 +59,76 @@ docker:
     ENTRYPOINT ["/go-example/go-example"]
     SAVE IMAGE go-example:latest
 ```
+This works, but it is inefficient because we have not made proper use of caching. In the current setup, when a file changes, the corresponding `COPY` command is re-executed without cache, causing all commands after it to also re-execute without cache.
 
-{% hint style='info' %}
-##### Note
+### Caching
 
-To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/go/part3) run
+If, however, we could first download the dependencies and only afterwards copy and build the code, then the cache would be reused every time we changed the code.
+
+`./Earthfile`
+
+```Dockerfile
+VERSION 0.6
+FROM golang:1.15-alpine3.13
+WORKDIR /go-example
+
+build:
+    # Download deps before copying code.
+    COPY go.mod go.sum .
+    RUN go mod download
+    # Copy and build code.
+    COPY main.go .
+    RUN go build -o build/go-example main.go
+    SAVE ARTIFACT build/go-example /go-example AS LOCAL build/go-example
+
+docker:
+    COPY +build/go-example .
+    ENTRYPOINT ["/go-example/go-example"]
+    SAVE IMAGE go-example:latest
+```
+
+For a primer into Dockerfile layer caching see [this article](https://pythonspeed.com/articles/docker-caching-model/). The same principles apply to Earthfiles.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<details open>
+<summary>Javascript</summary>
+
+To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/js/part3) run
 
 ```bash
-earthly --artifact github.com/earthly/earthly/examples/tutorial/go:main+part3/part3 ./part3
+earthly --artifact github.com/earthly/earthly/examples/tutorial/js:main+part3/part3 ./part3
 ```
-{% endhint %}
-
-### Javascript
-
 `./package.json`
 
 ```json
@@ -141,10 +198,12 @@ FROM node:13.10.1-alpine3.11
 WORKDIR /js-example
 
 build:
+    # Download deps before copying code.
     COPY package.json package-lock.json ./
+    RUN npm install
+    # Copy and build code.
     COPY src src
     RUN mkdir -p ./dist && cp ./src/index.html ./dist/
-    RUN npm install
     RUN npx webpack
     SAVE ARTIFACT dist /dist AS LOCAL ./dist
 
@@ -157,17 +216,17 @@ docker:
     SAVE IMAGE js-example:latest
 ```
 
-{% hint style='info' %}
-##### Note
 
-To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/js/part3) run
+</details>
+
+<details open>
+<summary>Java</summary>
+
+To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/java/part3) run
 
 ```bash
-earthly --artifact github.com/earthly/earthly/examples/tutorial/js:main+part3/part3 ./part3
+earthly --artifact github.com/earthly/earthly/examples/tutorial/java:main+part3/part3 ./part3
 ```
-{% endhint %}
-
-### Java
 
 `./build.gradle`
 
@@ -223,7 +282,10 @@ RUN apk add --update --no-cache gradle
 WORKDIR /java-example
 
 build:
+    # Download deps before copying code.
     COPY build.gradle ./
+    RUN gradle build
+    # Copy and build code.
     COPY src src
     RUN gradle build
     RUN gradle install
@@ -237,17 +299,16 @@ docker:
     SAVE IMAGE java-example:latest
 ```
 
-{% hint style='info' %}
-##### Note
+</details>
 
-To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/java/part3) run
+<details open>
+<summary>Python</summary>
+
+To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/python/part3) run
 
 ```bash
-earthly --artifact github.com/earthly/earthly/examples/tutorial/java:main+part3/part3 ./part3
+earthly --artifact github.com/earthly/earthly/examples/tutorial/python:main+part3/part3 ./part3
 ```
-{% endhint %}
-
-### Python
 
 `./requirements.txt`
 
@@ -277,31 +338,25 @@ FROM python:3
 WORKDIR /code
 
 build:
+    # Download deps before copying code.
     RUN pip install wheel
     COPY requirements.txt ./
     RUN pip wheel -r requirements.txt --wheel-dir=wheels
+    SAVE ARTIFACT wheels /wheels
+    # Copy and build code.
     COPY src src
     SAVE ARTIFACT src /src
-    SAVE ARTIFACT wheels /wheels
 
 docker:
-    COPY +build/src src
     COPY +build/wheels wheels
+    COPY +build/src src
     COPY requirements.txt ./
     RUN pip install --no-index --find-links=wheels -r requirements.txt
     ENTRYPOINT ["python3", "./src/hello.py"]
     SAVE IMAGE python-example:latest
 ```
 
-{% hint style='info' %}
-##### Note
-
-To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/python/part3) run
-
-```bash
-earthly --artifact github.com/earthly/earthly/examples/tutorial/python:main+part3/part3 ./part3
-```
-{% endhint %}
+</details>
 
 However, as we build this new setup and make changes to the main source code, we notice that the dependencies are downloaded every single time we change the source code. While the build is not necessarily incorrect, it is inefficient for proper development speed.
 
