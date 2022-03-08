@@ -649,6 +649,53 @@ func (c *Converter) RunExpression(ctx context.Context, expressionName string, op
 	return string(outputDt), nil
 }
 
+func (c *Converter) RunCommandOutput(ctx context.Context, cmd string) (string, error) {
+	err := c.checkAllowed(runCmd)
+	if err != nil {
+		return "", err
+	}
+	c.nonSaveCommand()
+
+	var outputFile string
+
+	srcBuildArgDir := "/run/buildargs"
+	outputFile = path.Join(srcBuildArgDir, "todo-name")
+
+	opts := ConvertRunOpts{
+		CommandName: fmt.Sprintf("expanding :::%s:::", cmd),
+		Args:        []string{"/bin/sh", "-c", fmt.Sprintf(">%s %s", outputFile, cmd)},
+		Transient:   true,
+	}
+
+	opts.statePrep = func(ctx context.Context, state pllb.State) (pllb.State, error) {
+		return state.File(
+			pllb.Mkdir(srcBuildArgDir, 0777, llb.WithParents(true)), // Mkdir is performed as root even when USER is set; we must use 0777
+			llb.WithCustomNamef("[internal] mkdir %s", srcBuildArgDir)), nil
+	}
+
+	// Perform execution, but append the command with the right shell incantation that
+	// causes it to output to a file. This is done via the shellWrap.
+	//opts.shellWrap = withShellAndEnvVarsOutput(outputFile)
+	opts.WithShell = false
+	state, err := c.internalRun(ctx, opts)
+	if err != nil {
+		return "", err
+	}
+
+	var outputDt []byte
+	ref, err := llbutil.StateToRef(ctx, c.opt.GwClient, state, c.opt.NoCache, c.opt.Platform, c.opt.CacheImports.AsMap())
+	if err != nil {
+		return "", errors.Wrapf(err, "build arg state to ref")
+	}
+	outputDt, err = ref.ReadFile(ctx, gwclient.ReadRequest{Filename: outputFile})
+	if err != nil {
+		return "", errors.Wrapf(err, "non constant build arg read request")
+	}
+	// echo adds a trailing \n.
+	//outputDt = bytes.TrimSuffix(outputDt, []byte("\n"))
+	return string(outputDt), nil
+}
+
 // SaveArtifact applies the earthly SAVE ARTIFACT command.
 func (c *Converter) SaveArtifact(ctx context.Context, saveFrom string, saveTo string, saveAsLocalTo string, keepTs bool, keepOwn bool, ifExists, symlinkNoFollow, force bool, isPush bool) error {
 	err := c.checkAllowed(saveArtifactCmd)
@@ -1321,15 +1368,26 @@ func (c *Converter) FinalizeStates(ctx context.Context) (*states.MultiTarget, er
 
 // ExpandArgs expands args in the provided word.
 func (c *Converter) ExpandArgs(ctx context.Context, word string) (string, error) {
-	if !containsShell(word) {
-		return c.varCollection.Expand(word), nil
+	shellOut := func(cmd string) (string, error) {
+		output, err := c.RunCommandOutput(ctx, cmd)
+		if err != nil {
+			return "", err
+		}
+		//fmt.Printf("shellout %s -> %s, %v\n", cmd, output, err)
+		return output, nil
+
 	}
-	pncvf := c.processNonConstantBuildArgFunc(ctx)
-	expanded, _, err := pncvf("earthly-expand-arg", word)
-	if err != nil {
-		return "", err
-	}
-	return expanded, nil
+
+	s := c.varCollection.Expand(word, shellOut)
+	//fmt.Printf("%s -> %s\n", word, s)
+	return s, nil
+	//return c.varCollection.Expand(word), nil
+	//if !containsShell(word) {
+	//}
+	//if err != nil {
+	//	return "", err
+	//}
+	//return expanded, nil
 }
 
 // containsShell returns true for strings containing $(

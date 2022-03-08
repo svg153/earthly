@@ -8,8 +8,8 @@ import (
 	"github.com/earthly/earthly/domain"
 	"github.com/earthly/earthly/features"
 	"github.com/earthly/earthly/util/gitutil"
+	"github.com/earthly/earthly/util/shell"
 
-	dfShell "github.com/moby/buildkit/frontend/dockerfile/shell"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
@@ -132,8 +132,9 @@ func (c *Collection) SortedOverridingVariables() []string {
 }
 
 // Expand expands variables within the given word.
-func (c *Collection) Expand(word string) string {
-	shlex := dfShell.NewLex('\\')
+func (c *Collection) Expand(word string, shellOut shell.ShellOutFn) string {
+	shlex := shell.NewLex('\\')
+	shlex.ShellOut = shellOut
 	varMap := c.effective().ActiveValueMap()
 	ret, err := shlex.ProcessWordWithMap(word, varMap)
 	if err != nil {

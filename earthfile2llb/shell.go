@@ -67,7 +67,9 @@ func strWithEnvVarsAndDocker(args []string, envVars []string, withShell, withDeb
 		cmdParts = append(cmdParts, "/bin/sh", "-c")
 		cmdParts = append(cmdParts, fmt.Sprintf("'%s'", strings.Join(escapedArgs, " ")))
 	} else {
-		cmdParts = append(cmdParts, args...)
+		for _, arg := range args {
+			cmdParts = append(cmdParts, "'"+escapeShellSingleQuotes(arg)+"'")
+		}
 	}
 	return strings.Join(cmdParts, " ")
 }
