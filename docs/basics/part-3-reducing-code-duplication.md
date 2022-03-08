@@ -47,7 +47,7 @@ To copy the files for [this example ( Part 5 )](https://github.com/earthly/earth
 earthly --artifact github.com/earthly/earthly/examples/tutorial/go:main+part5/part5 ./part5
 ```
 {% endhint %}
-## ARGS
+
 
 
 

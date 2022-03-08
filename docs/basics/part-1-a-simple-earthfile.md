@@ -1,4 +1,4 @@
-This tutorial focuses on useing Earthly with a Golang project, but you can find examples of in [Python](#examples-in-other-languages), [Javascript](#examples-in-other-languages) and [Java](#examples-in-other-languages) at the bottom of each page. 
+This tutorial focuses on useing Earthly with a Go project, but you can find examples of in [Python](#examples-in-other-languages), [Javascript](#examples-in-other-languages) and [Java](#examples-in-other-languages) at the bottom of each page. 
 
 Below you'll find a simple example of an earthfile. All the magic of Earthly happens in the Earthfile, which you may notice is very similar to a Dockerfile. This is an intentional design decision. Existing Dockerfiles can easily be ported to Earthly by copying them to an Earthfile and tweaking them slightly. Let's take a closer look at the Earthfile. 
 
@@ -6,7 +6,7 @@ Below you'll find a simple example of an earthfile. All the magic of Earthly hap
 VERSION 0.6
 FROM golang:1.15-alpine3.13
 WORKDIR /go-example
-
+ 
 build:
     COPY main.go .
     RUN go build -o build/go-example main.go
