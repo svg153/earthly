@@ -127,9 +127,9 @@ func ApplyFlagOverrides(ftrs *Features, envOverrides string) error {
 
 var errUnexpectedArgs = fmt.Errorf("unexpected VERSION arguments; should be VERSION [flags] <major-version>.<minor-version>")
 
-func instrumentVersion(_ string, opt *goflags.Option, s *string) *string {
+func instrumentVersion(_ string, opt *goflags.Option, s *string) (*string, error) {
 	analytics.Count("version-feature-flags", opt.LongName)
-	return s // don't modify the flag, just pass it back.
+	return s, nil // don't modify the flag, just pass it back.
 }
 
 // GetFeatures returns a features struct for a particular version

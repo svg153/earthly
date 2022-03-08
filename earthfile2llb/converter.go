@@ -1320,8 +1320,47 @@ func (c *Converter) FinalizeStates(ctx context.Context) (*states.MultiTarget, er
 }
 
 // ExpandArgs expands args in the provided word.
-func (c *Converter) ExpandArgs(word string) string {
-	return c.varCollection.Expand(word)
+func (c *Converter) ExpandArgs(ctx context.Context, word string) (string, error) {
+	if !containsShell(word) {
+		return c.varCollection.Expand(word), nil
+	}
+	pncvf := c.processNonConstantBuildArgFunc(ctx)
+	expanded, _, err := pncvf("earthly-expand-arg", word)
+	if err != nil {
+		return "", err
+	}
+	return expanded, nil
+}
+
+// containsShell returns true for strings containing $(
+// except for cases where escaped: e.g. \$(
+// or cases with singlquotes: '$(...'
+func containsShell(s string) bool {
+	var escaped bool
+	var singlequoted bool
+	var last rune
+	for _, c := range s {
+		if escaped {
+			escaped = false
+			last = 0
+			continue
+		}
+		if c == '\\' {
+			escaped = true
+			last = 0
+			continue
+		}
+		if c == '\'' {
+			singlequoted = !singlequoted
+			last = 0
+			continue
+		}
+		if last == '$' && c == '(' && !singlequoted {
+			return true
+		}
+		last = c
+	}
+	return false
 }
 
 func (c *Converter) prepBuildTarget(ctx context.Context, fullTargetName string, platform *specs.Platform, allowPrivileged bool, buildArgs []string, isDangling bool, cmdT cmdType) (domain.Target, ConvertOpt, bool, error) {

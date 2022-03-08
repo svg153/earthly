@@ -11,6 +11,10 @@ all:
     BUILD +test3
     BUILD +test4
     BUILD +test5
+    BUILD +test6
+    BUILD +test7
+    BUILD +test8
+    BUILD +test9
     BUILD +test-global1
     BUILD +test-global2
     BUILD +test-global3
@@ -57,6 +61,34 @@ test5:
     RUN printf '"text with quotes"' >./content
     ARG VAR1=$(cat ./content)
     RUN test "$VAR1" == '"text with quotes"'
+
+test6:
+    RUN echo world > data
+    ARG VAR1="hello$(cat ./data)"
+    RUN test "$VAR1" == "helloworld"
+
+test7:
+    FROM scratch
+    ARG VAR1="literal\$(string)"
+    FROM alpine:3.15
+    RUN test "$VAR1" == "literal\$(string)"
+    RUN echo -n $VAR1 | base64
+    RUN echo -n $VAR1 | base64 | grep bGl0ZXJhbCQoc3RyaW5nKQ==
+
+test8:
+    FROM scratch
+    ARG VAR1='literal$(whoami)string'
+    FROM alpine:3.15
+    RUN test "$VAR1" == 'literal$(whoami)string'
+    RUN echo -n $VAR1 | base64 | grep bGl0ZXJhbCQod2hvYW1pKXN0cmluZw==
+
+test9:
+    RUN echo alpha > a
+    RUN echo "bravo" > b
+    RUN echo 'charlie' > c
+    ENV d "delta"
+    ARG VAR1="a is $(cat a) and b is $(dd if=b 2>/dev/null) and c is $(cat <c) and d is $d."
+    RUN test "$VAR1" == "a is alpha and b is bravo and c is charlie and d is delta."
 
 test-global1:
     RUN test "$global1" == "abc"

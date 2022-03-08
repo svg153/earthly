@@ -74,34 +74,13 @@ func parseArg(arg string, pncvf ProcessNonConstantVariableFunc, current *Collect
 		if reserved.IsBuiltIn(name) {
 			return "", "", errors.Errorf("value cannot be specified for built-in build arg %s", name)
 		}
-
-		v, err := parseArgValue(name, value, pncvf)
-		if err != nil {
-			return "", "", err
-		}
-		return name, v, nil
+		return name, value, nil
 	}
 	v, ok := current.GetActive(name)
 	if !ok {
 		return "", "", errors.Errorf("value not specified for build arg %s and no value can be inferred", name)
 	}
 	return name, v, nil
-}
-
-func parseArgValue(name string, value string, pncvf ProcessNonConstantVariableFunc) (string, error) {
-	if pncvf == nil {
-		return value, nil
-	}
-	if strings.HasPrefix(value, "$(") {
-		// Variable build arg - resolve value.
-		var err error
-		value, _, err = pncvf(name, value)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return value, nil
 }
 
 // ParseEnvVars parses env vars from a slice of strings of the form "key=value".

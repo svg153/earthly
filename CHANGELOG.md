@@ -31,6 +31,7 @@ All notable changes to [Earthly](https://github.com/earthly/earthly) will be doc
 
 - Earthly is now 15-30% faster when executing large builds [#1589](https://github.com/earthly/earthly/issues/1589)
 - Experimental `HOST` command, which can be used like this: `HOST <domain> <ip>` to add additional hosts during the execution of your build. To enable this feature, use `VERSION --use-host-command 0.6`. [#1168](https://github.com/earthly/earthly/issues/1168)
+- Ability to shell-out during SAVE IMAGE names, (e.g. `SAVE IMAGE myimage:$(cat version)`).
 
 ### Fixed
 
@@ -46,6 +47,7 @@ All notable changes to [Earthly](https://github.com/earthly/earthly) will be doc
   build args. [#1696](https://github.com/earthly/earthly/issues/1696)
 - `ENTRYPOINT` and `CMD` were not properly expanding args when used in shell mode.
 - A race condition sometimes caused a `Canceled` error to be reported, instead of the real error that caused the build to fail
+- ARG values now support shelling-out in the middle of the string (e.g. `foo$(cat data)` will now work).
 
 ## v0.6.8 - 2022-02-16
 
