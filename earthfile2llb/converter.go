@@ -649,6 +649,8 @@ func (c *Converter) RunExpression(ctx context.Context, expressionName string, op
 	return string(outputDt), nil
 }
 
+// RunCommandOutput evalues a command and returns the output. The run is transient - any state created
+// is not used in subsequent commands.
 func (c *Converter) RunCommandOutput(ctx context.Context, cmd string) (string, error) {
 	err := c.checkAllowed(runCmd)
 	if err != nil {
@@ -664,7 +666,7 @@ func (c *Converter) RunCommandOutput(ctx context.Context, cmd string) (string, e
 	// "exec 1<>/output" is equivalent to appending ">/output"
 	// this is to limit the errornous effect of cmd containing something that isn't
 	// correctly escaped (e.g. "echo whoops # ignore the rest")
-	args := []string{"/bin/sh", "-c", fmt.Sprintf("exec 1<>%s && %s", outputFile, cmd)}
+	args := []string{"/bin/sh", "-c", fmt.Sprintf("exec 1<>%s && %s", outputFile, cmd)} // TODO double check running env will show all ARGs
 
 	opts := ConvertRunOpts{
 		CommandName: fmt.Sprintf("expanding :::%s:::", cmd),

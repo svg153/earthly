@@ -26,7 +26,7 @@ type Lex struct {
 	RawEscapes        bool
 	SkipProcessQuotes bool
 	SkipUnsetEnv      bool
-	ShellOut          ShellOutFn
+	ShellOut          EvalShellOutFn
 }
 
 // NewLex creates a new Lex which uses escapeToken to escape quotes.
@@ -60,6 +60,8 @@ func (s *Lex) ProcessWordWithMap(word string, env map[string]string) (string, er
 	return word, err
 }
 
+// ProcessWordsWithMap will use the 'env' list of environment variables,
+// and replace any env var references in 'word'.
 func (s *Lex) ProcessWordsWithMap(word string, env map[string]string) ([]string, error) {
 	_, words, err := s.process(word, env)
 	return words, err
@@ -79,9 +81,10 @@ func (s *Lex) process(word string, env map[string]string) (string, []string, err
 	return sw.process(word)
 }
 
-type ShellOutFn func(cmd string) (string, error)
+// EvalShellOutFn is a supplied callback function which is called whenever a shell-out command needs to be evaluated
+type EvalShellOutFn func(cmd string) (string, error)
 
-// ErrNoShellOut occurs when the ShellOutFn was not set
+// ErrNoShellOut occurs when the EvalShellOutFn was not set
 var ErrNoShellOut = errors.New("shelling out is not available")
 
 type shellWord struct {
@@ -92,7 +95,7 @@ type shellWord struct {
 	rawEscapes        bool
 	skipUnsetEnv      bool
 	skipProcessQuotes bool
-	shellOut          ShellOutFn
+	shellOut          EvalShellOutFn
 }
 
 func (sw *shellWord) process(source string) (string, []string, error) {
@@ -573,6 +576,7 @@ func (sw *shellWord) getEnv(name string) (string, bool) {
 	return "", false
 }
 
+// BuildEnvs takes a list of envs and converts it to a map
 func BuildEnvs(env []string) map[string]string {
 	envs := map[string]string{}
 

@@ -132,7 +132,7 @@ func (c *Collection) SortedOverridingVariables() []string {
 }
 
 // Expand expands variables within the given word.
-func (c *Collection) Expand(word string, shellOut shell.ShellOutFn) string {
+func (c *Collection) Expand(word string, shellOut shell.EvalShellOutFn) string {
 	shlex := shell.NewLex('\\')
 	shlex.ShellOut = shellOut
 	varMap := c.effective().ActiveValueMap()
