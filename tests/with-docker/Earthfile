@@ -31,7 +31,7 @@ another-test-image:
 
 a-test-image-with-shell-out:
     FROM alpine:3.15
-    RUN echo c2hlbGxvdXQ= > data
+    RUN echo c2hlbGxvdXQ= > data # decodes into "shellout"
     RUN echo myver > version
     ENTRYPOINT echo "you found me"
     SAVE IMAGE "test-img-with-$(cat data | base64 -d)":"$(cat version)"

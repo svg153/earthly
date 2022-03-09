@@ -661,9 +661,14 @@ func (c *Converter) RunCommandOutput(ctx context.Context, cmd string) (string, e
 	srcBuildArgDir := "/run/buildargs"
 	outputFile = path.Join(srcBuildArgDir, "todo-name")
 
+	// "exec 1<>/output" is equivalent to appending ">/output"
+	// this is to limit the errornous effect of cmd containing something that isn't
+	// correctly escaped (e.g. "echo whoops # ignore the rest")
+	args := []string{"/bin/sh", "-c", fmt.Sprintf("exec 1<>%s && %s", outputFile, cmd)}
+
 	opts := ConvertRunOpts{
 		CommandName: fmt.Sprintf("expanding :::%s:::", cmd),
-		Args:        []string{"/bin/sh", "-c", fmt.Sprintf(">%s %s", outputFile, cmd)},
+		Args:        args,
 		Transient:   true,
 	}
 
@@ -691,8 +696,9 @@ func (c *Converter) RunCommandOutput(ctx context.Context, cmd string) (string, e
 	if err != nil {
 		return "", errors.Wrapf(err, "non constant build arg read request")
 	}
-	// echo adds a trailing \n.
-	//outputDt = bytes.TrimSuffix(outputDt, []byte("\n"))
+	// shelling-out removes trailing newlines (bash does this too)
+	outputDt = bytes.TrimSuffix(outputDt, []byte("\n"))
+	//fmt.Printf("RunCommandOutput %q -> %q\n", cmd, string(outputDt))
 	return string(outputDt), nil
 }
 
