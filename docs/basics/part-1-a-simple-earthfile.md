@@ -21,8 +21,8 @@ Throughout this tutorial, we'll build up this example Earthfile from scratch and
 
 ## Creating an Earthfile
 
-To start we have two files, a `main.go` file:
-```go
+Let's start with two files in our working directory, a `main.go` and an `Earthfile`.
+```{.go caption="main.go"}
 package main
 
 import "fmt"
@@ -31,16 +31,15 @@ func main() {
 	fmt.Println("hello world")
 }
 ```
-and an Earthfile, which we will build up step by step.
-
-Earthfiles are always named Earthfile, regardless of their location in the codebase. 
-The Earthfile starts off with a version definition. This will tell Earthly which features to enable and which ones not to, so that the build script maintains compatibility over time, even if Earthly itself is updated.
-
 ```Dockerfile
 VERSION 0.6
 FROM golang:1.15-alpine3.13
 WORKDIR /go-example
 ```
+
+Earthfiles are always named Earthfile, regardless of their location in the codebase. 
+The Earthfile starts off with a version definition. This will tell Earthly which features to enable and which ones not to, so that the build script maintains compatibility over time, even if Earthly itself is updated.
+
 
 The first commands in the file are part of the `base` target and are implicitly inherited by all other targets. We'll talk more about targets in a bit, but for now, targets are just sets of instructions we can call on from within the Earthfile, or when we run earthly at the command line. Targets need an environment to run in. These environments come in the form of Docker images. In this case we are saying that all the instructions in our Earthfile will use `golang:1.15-alpine3.13`, [unless we specify otherwise](#target-environments).
 
