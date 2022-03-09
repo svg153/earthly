@@ -44,17 +44,6 @@ FROM earthly/dind:alpine
 WORKDIR /go-example
 RUN wget postgresql-client
 
-build:
-    FROM golang:1.15-alpine3.13
-    COPY main.go .
-    RUN go build -o build/go-example main.go
-    SAVE ARTIFACT build/go-example /go-example AS LOCAL build/go-example
-
-docker:
-    COPY +build/go-example .
-    ENTRYPOINT ["/go-example/go-example"]
-    SAVE IMAGE go-example:latest
-
 run-tests:
     COPY ./docker-compose.yml .
     WITH DOCKER --compose docker-compose.yml
@@ -62,3 +51,54 @@ run-tests:
             go test
     END
 ```
+## More Examples
+<details open>
+<summary>Python</summary>
+
+To copy the files for [this example ( Part 2 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/python/part3) run
+
+```bash
+earthly --artifact github.com/earthly/earthly/examples/tutorial/python:main+part3/part3 ./part3
+```
+
+```yml
+version: "3.9"
+   
+services:
+  db:
+    image: postgres
+    container_name: db
+    hostname: postgres
+    environment:
+      - POSTGRES_NAME=my_mediamy_db
+      - POSTGRES_USER=example
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - 5432:5432
+```
+
+`./Earthfile`
+
+```Dockerfile
+VERSION 0.6
+FROM python:3
+WORKDIR /code
+
+build:
+  COPY ./requirements.txt .
+  RUN pip install -r requirements.txt
+  COPY . .
+
+test:
+  FROM +build
+  COPY ./docker-compose.yml .
+  RUN apt-get update
+  RUN apt-get install -y postgresql-client
+  WITH DOCKER --compose docker-compose.yml
+      RUN while ! pg_isready --host=localhost --port=5432 --dbname=my_db --username=example; do sleep 1; done ;\
+        python manage.py test
+  END
+```
+
+</details>

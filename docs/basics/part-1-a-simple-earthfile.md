@@ -78,8 +78,9 @@ With Earthly you have the ability to pass such artifacts or images between targe
 Copy the artifact `/go-example` produced by another target, `+build`, to the current directory within the build environment. Set the entrypoint for the resulting docker image.
 Save the current state as a docker image, which will have the docker tag `go-example:latest`. This image is only made available to the host's docker if the entire build succeeds.
 
-### Target Outputs
-Which targets perform outputs and pushes and which targets don't
+## Target Outputs
+TODO
+Which targets perform outputs and pushes and which targets don't.
 
 
 ## Target Environments
@@ -174,6 +175,13 @@ console.log("hello world");
 
 <details open>
 <summary>Java</summary>
+To copy the files for [this example ( Part 1 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/java/part1) run
+
+```bash
+mkdir tutorial
+cd tutorial
+earthly --artifact github.com/earthly/earthly/examples/tutorial/java:main+part1/part1 ./part1
+```
 
 `./Earthfile`
 
@@ -203,6 +211,7 @@ The code of the app might look like this
 `./src/main/java/hello/HelloWorld.java`
 
 ```java
+
 package hello;
 
 public class HelloWorld {
@@ -228,21 +237,19 @@ jar {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 ```
-
-##### Note
-
-To copy the files for [this example ( Part 1 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/java/part1) run
-
-```bash
-mkdir tutorial
-cd tutorial
-earthly --artifact github.com/earthly/earthly/examples/tutorial/java:main+part1/part1 ./part1
-```
 </details>
 
 
 <details open>
 <summary>Python</summary>
+To copy the files for [this example ( Part 1 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/python/part1) run
+
+```bash
+mkdir tutorial
+cd tutorial
+earthly --artifact github.com/earthly/earthly/examples/tutorial/python:main+part1/part1 ./part1
+```
+
 `./Earthfile`
 
 ```Dockerfile
@@ -267,16 +274,6 @@ The code of the app might look like this
 
 ```python
 print("hello world")
-```
-
-##### Note
-
-To copy the files for [this example ( Part 1 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/python/part1) run
-
-```bash
-mkdir tutorial
-cd tutorial
-earthly --artifact github.com/earthly/earthly/examples/tutorial/python:main+part1/part1 ./part1
 ```
 
 </details>
