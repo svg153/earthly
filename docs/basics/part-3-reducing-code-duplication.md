@@ -1,16 +1,13 @@
 # Reducing code duplication
 
+To copy the files for [this example ( Part 5 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/go/part5) run
+
+```bash
+earthly --artifact github.com/earthly/earthly/examples/tutorial/go:main+part5/part5 ./part5
+```
+
 In some cases, the dependencies might be used in more than one build target. For this use case, we might want to separate dependency downloading and reuse it. For this reason, let's consider breaking this out into a separate build target, called `deps`. We can then inherit from `deps` by using the command `FROM +deps`.
 
-Note that in our case, only the JavaScript version has an example where `FROM +deps` is used in more than one place: both in `build` and in `docker`. Nevertheless, all versions show how dependencies may be separated.
-
-- [Go](#go) 
-- [JavaScript](#javascript) 
-- [Java](#java)
-- [Python](#python)
-
-
-### Go
 
 `./Earthfile`
 
@@ -38,46 +35,17 @@ docker:
     SAVE IMAGE go-example:latest
 ```
 
-{% hint style='info' %}
-##### Note
 
-To copy the files for [this example ( Part 5 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/go/part5) run
+<details open>
+<summary>Javascript</summary>
+
+To copy the files for [this example ( Part 5 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/js/part5) run
 
 ```bash
-earthly --artifact github.com/earthly/earthly/examples/tutorial/go:main+part5/part5 ./part5
+earthly --artifact github.com/earthly/earthly/examples/tutorial/js:main+part5/part5 ./part5
 ```
-{% endhint %}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### JavaScript
+Note that in our case, only the JavaScript version has an example where `FROM +deps` is used in more than one place: both in `build` and in `docker`. Nevertheless, all versions show how dependencies may be separated.
 
 `./Earthfile`
 
@@ -109,17 +77,17 @@ docker:
     SAVE IMAGE js-example:latest
 ```
 
-{% hint style='info' %}
-##### Note
+</details>
 
-To copy the files for [this example ( Part 5 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/js/part5) run
+
+<details open>
+<summary>Java</summary>
+
+To copy the files for [this example ( Part 5 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/java/part5) run
 
 ```bash
-earthly --artifact github.com/earthly/earthly/examples/tutorial/js:main+part5/part5 ./part5
+earthly --artifact github.com/earthly/earthly/examples/tutorial/java:main+part5/part5 ./part5
 ```
-{% endhint %}
-
-### Java
 
 `./Earthfile`
 
@@ -148,17 +116,17 @@ docker:
     SAVE IMAGE java-example:latest
 ```
 
-{% hint style='info' %}
-##### Note
+</details>
 
-To copy the files for [this example ( Part 5 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/java/part5) run
+
+<details open>
+<summary>Python</summary>
+
+To copy the files for [this example ( Part 5 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/python/part5) run
 
 ```bash
-earthly --artifact github.com/earthly/earthly/examples/tutorial/java:main+part5/part5 ./part5
+earthly --artifact github.com/earthly/earthly/examples/tutorial/python:main+part5/part5 ./part5
 ```
-{% endhint %}
-
-### Python
 
 `./Earthfile`
 
@@ -187,12 +155,4 @@ docker:
     SAVE IMAGE python-example:latest
 ```
 
-{% hint style='info' %}
-##### Note
-
-To copy the files for [this example ( Part 5 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/python/part5) run
-
-```bash
-earthly --artifact github.com/earthly/earthly/examples/tutorial/python:main+part5/part5 ./part5
-```
-{% endhint %}
+</details>

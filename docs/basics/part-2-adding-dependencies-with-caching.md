@@ -8,7 +8,7 @@ earthly --artifact github.com/earthly/earthly/examples/tutorial/go:main+part3/pa
 ```
 
 
-Now let's imagine that we want to add some dependancies to our app. In Go, that means adding `go.mod` and `go.sum`. See below for examples in [Python](#examples-in-other-languages), [Javascript](#examples-in-other-languages) and [Java](#examples-in-other-languages).
+Now let's imagine that we want to add some dependencies to our app. In Go, that means adding `go.mod` and `go.sum`. See below for examples in [Python](#more-examples), [Javascript](#more-examples) and [Java](#more-examples).
 
 `./go.mod`
 
@@ -89,37 +89,7 @@ docker:
 
 For a primer into Dockerfile layer caching see [this article](https://pythonspeed.com/articles/docker-caching-model/). The same principles apply to Earthfiles.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## More Examples
 
 <details open>
 <summary>Javascript</summary>
@@ -357,7 +327,3 @@ docker:
 ```
 
 </details>
-
-However, as we build this new setup and make changes to the main source code, we notice that the dependencies are downloaded every single time we change the source code. While the build is not necessarily incorrect, it is inefficient for proper development speed.
-
-To improve the speed we will make some changes in part 4 of the tutorial.
