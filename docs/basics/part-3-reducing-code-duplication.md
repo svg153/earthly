@@ -6,6 +6,7 @@ To copy the files for [this example ( Part 3 )](https://github.com/earthly/earth
 earthly --artifact github.com/earthly/earthly/examples/tutorial/go:main+part5/part5 ./part5
 ```
 Examples in [Python](#more-examples), [Javascript](#more-examples) and [Java](#more-examples) are at the bottom of this page.
+
 In some cases, the dependencies might be used in more than one build target. For this use case, we might want to separate dependency downloading and reuse it. For this reason, let's consider breaking this out into a separate build target, called `deps`. We can then inherit from `deps` by using the command `FROM +deps`.
 
 
@@ -18,10 +19,10 @@ WORKDIR /go-example
 
 deps:
     COPY go.mod go.sum ./
-	RUN go mod download
+    RUN go mod download
     # Output these back in case go mod download changes them.
-	SAVE ARTIFACT go.mod AS LOCAL go.mod
-	SAVE ARTIFACT go.sum AS LOCAL go.sum
+    SAVE ARTIFACT go.mod AS LOCAL go.mod
+    SAVE ARTIFACT go.sum AS LOCAL go.sum
 
 build:
     FROM +deps

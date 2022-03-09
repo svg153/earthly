@@ -5,13 +5,13 @@ Earthly is a build automation tool that uses docker containers to enforce build 
 This tutorial will walk you through a basic example of using Earthly.
 
 * **Introduction** <-- You are here.
-* [Part 1: A simple Earthfile](./part-1-a-simple-earthfile.md)
-* [Part 1b: Detailed explanation](./part-1b-detailed-explanation.md)
-* [Part 2: Running the build](./part-2-running-the-build.md)
-* [Part 3: Adding dependencies](./part-3-adding-dependencies.md)
-* [Part 4: Caching dependencies](./part-4-caching-dependencies.md)
-* [Part 5: Reducing code duplication](./part-5-reducing-code-duplication.md)
-* [Final words](./final-words.md)
+* [Part 1: A simple Earthfile](basics/part-1-a-simple-earthfile.md)
+* [Part 2: Adding dependencies With Caching](basics/part-2-adding-dependencies-with-caching.md)
+* [Part 3: Reducing code duplication](basics/part-3-reducing-code-duplication.md)
+* [Part 4: Args](basics/part-4-args.md)
+* [Part 5: Importing](basics/part-5-importing.md)
+* [Part 6: Using Docker With Earthly](basics/part-6-using-docker-with-earthly.md)
+* [Final words](basics/final-words.md)
 
 ## Installation
 

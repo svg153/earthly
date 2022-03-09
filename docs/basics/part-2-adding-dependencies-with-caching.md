@@ -6,8 +6,7 @@ To copy the files for [this example ( Part 2 )](https://github.com/earthly/earth
 ```bash
 earthly --artifact github.com/earthly/earthly/examples/tutorial/go:main+part3/part3 ./part3
 ```
-
-
+## Dependencies
 Now let's imagine that we want to add some dependencies to our app. In Go, that means adding `go.mod` and `go.sum`. See below for examples in [Python](#more-examples), [Javascript](#more-examples) and [Java](#more-examples).
 
 `./go.mod`

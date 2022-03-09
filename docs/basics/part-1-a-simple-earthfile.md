@@ -21,8 +21,9 @@ Throughout this tutorial, we'll build up this example Earthfile from scratch and
 
 ## Creating an Earthfile
 
-Let's start with two files in our working directory, a `main.go` and an `Earthfile`.
-```{.go caption="main.go"}
+Let's start with two files in our working directory.
+ `main.go`
+```go
 package main
 
 import "fmt"
@@ -31,6 +32,7 @@ func main() {
 	fmt.Println("hello world")
 }
 ```
+`Earthfile`
 ```Dockerfile
 VERSION 0.6
 FROM golang:1.15-alpine3.13
