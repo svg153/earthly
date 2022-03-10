@@ -1,8 +1,12 @@
-You may find that you need to run Docker commands inside of a target. For those cases Earthly offers `WITH DOCKER`. `WITH DOCKER` will initialize a Docker daemon that can be used in the context of a `RUN` command. Let's take a look at a few examples. 
+Examples in [Python](#more-examples), [Javascript](#more-examples) and [Java](#more-examples) are at the bottom of this page.
 
-Whenever you need to use `WITH DOCKER` we recommend (though it is not required) that you user Earthly's own Docker in Docker (dind) image `earthly/dind:alpine`.
+## The WITH DOCKER Command
 
-Notice `WITH DOCKER` creates a block of code that has an END keyword. Everything that happens within this block is going to take place within our `earthly/dind:alpine` container.
+You may find that you need to run Docker commands inside of a target. For those cases Earthly offers `WITH DOCKER`. `WITH DOCKER` will initialize a Docker daemon that can be used in the context of a `RUN` command. Let's take a look at a couple examples. 
+
+Whenever you need to use `WITH DOCKER` we recommend (though it is not required) that you use Earthly's own Docker in Docker (dind) image: `earthly/dind:alpine`.
+
+Notice `WITH DOCKER` creates a block of code that has an `END` keyword. Everything that happens within this block is going to take place within our `earthly/dind:alpine` container.
 
 ```Dockerfile
 hello:
@@ -16,7 +20,7 @@ You can see in the command above that we can pass a flag to `WITH DOCKER` tellin
 
 ## A Real World Example
 
-One common use case for `WITH DOCKER` is running integration tests. In this case we might need to set up a database in addition to our application.
+One common use case for `WITH DOCKER` is running integration tests that require other services. In this case we might need to set up a database in addition to our application.
 
 TODO: 
 1. Learn how to write go tests and get this example to work

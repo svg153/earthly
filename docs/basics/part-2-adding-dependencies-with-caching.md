@@ -38,7 +38,7 @@ func main() {
 }
 ```
 
-Now we can update our Earthfile to copy in the 
+Now we can update our Earthfile to copy in the `go.mod` and `go.sum`.
 
 `./Earthfile`
 

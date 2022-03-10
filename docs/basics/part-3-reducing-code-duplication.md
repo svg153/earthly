@@ -7,6 +7,8 @@ earthly --artifact github.com/earthly/earthly/examples/tutorial/go:main+part5/pa
 ```
 Examples in [Python](#more-examples), [Javascript](#more-examples) and [Java](#more-examples) are at the bottom of this page.
 
+## Reusing Dependencies
+
 In some cases, the dependencies might be used in more than one build target. For this use case, we might want to separate dependency downloading and reuse it. For this reason, let's consider breaking this out into a separate build target, called `deps`. We can then inherit from `deps` by using the command `FROM +deps`.
 
 

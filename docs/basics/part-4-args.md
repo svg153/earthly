@@ -1,17 +1,36 @@
-ARGS in Earthly work similar to ARGS in Dockerfiles, however there are few differences when it comes to scope. Also, Earthly has a number ob [built in ARGS]() that are available to use.
+Examples in [Python](#more-examples), [Javascript](#more-examples) and [Java](#more-examples) are at the bottom of this page.
+
+`ARGS` in Earthly work similar to `ARGS` in Dockerfiles, however there are a few differences when it comes to scope. Also, Earthly has a number ob [built in ARGS]() that are available to use.
 
 Let's say we wanted to have the option to pass in a tag for our Docker image.
 
 ```Dockerfile
+VERSION 0.6
+FROM golang:1.15-alpine3.13
+WORKDIR /go-example
+
+deps:
+    COPY go.mod go.sum ./
+    RUN go mod download
+    # Output these back in case go mod download changes them.
+    SAVE ARTIFACT go.mod AS LOCAL go.mod
+    SAVE ARTIFACT go.sum AS LOCAL go.sum
+
+build:
+    FROM +deps
+    COPY main.go .
+    RUN go build -o build/go-example main.go
+    SAVE ARTIFACT build/go-example /go-example AS LOCAL build/go-example
+
 docker:
     ARG tag='latest'
     COPY +build/go-example .
     ENTRYPOINT ["/go-example/go-example"]
     SAVE IMAGE go-example:$tag
 ```
-In our docker target we can create an ARG called tag. In this case, we give it a default value of `latest`. If we do not provide a defalault value the defalut will be an empty string.
+In our docker target we can create an `ARG` called tag. In this case, we give it a default value of `latest`. If we do not provide a default value the default will be an empty string.
 
-Then, down in our `SAVE IMAGE` we are able to reference the ARG with `$` plus the ARG name.
+Then, down in our `SAVE IMAGE` we are able to reference the `ARG` with `$`.
 
 Now we can take advantage of this when we run Earthly.
 
@@ -25,7 +44,130 @@ earthly +docker
 # tag for image will be 'latests'
 ```
 ## Built in ARGS
-TODO
+TODO There are a number of built in ARGs that Earthly offers. You can read about a [complete list of them](), but for now let's take a look at two.
 
 ## More Examples
-TODO
+
+<details open>
+<summary>Javascript</summary>
+
+To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/js/part5) run
+
+```bash
+earthly --artifact github.com/earthly/earthly/examples/tutorial/js:main+part5/part5 ./part5
+```
+
+Note that in our case, only the JavaScript version has an example where `FROM +deps` is used in more than one place: both in `build` and in `docker`. Nevertheless, all versions show how dependencies may be separated.
+
+`./Earthfile`
+
+```Dockerfile
+VERSION 0.6
+FROM node:13.10.1-alpine3.11
+WORKDIR /js-example
+
+deps:
+    COPY package.json ./
+    COPY package-lock.json ./
+    RUN npm install
+    # Output these back in case npm install changes them.
+    SAVE ARTIFACT package.json AS LOCAL ./package.json
+    SAVE ARTIFACT package-lock.json AS LOCAL ./package-lock.json
+
+build:
+    FROM +deps
+    COPY src src
+    RUN mkdir -p ./dist && cp ./src/index.html ./dist/
+    RUN npx webpack
+    SAVE ARTIFACT dist /dist AS LOCAL dist
+
+docker:
+    FROM +deps
+    ARG tag='latest'
+    COPY +build/dist ./dist
+    EXPOSE 8080
+    ENTRYPOINT ["/js-example/node_modules/http-server/bin/http-server", "./dist"]
+    SAVE IMAGE js-example:$tag
+```
+
+</details>
+
+
+<details open>
+<summary>Java</summary>
+
+To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/java/part5) run
+
+```bash
+earthly --artifact github.com/earthly/earthly/examples/tutorial/java:main+part5/part5 ./part5
+```
+
+`./Earthfile`
+
+```Dockerfile
+VERSION 0.6
+FROM openjdk:8-jdk-alpine
+RUN apk add --update --no-cache gradle
+WORKDIR /java-example
+
+deps:
+    COPY build.gradle ./
+    RUN gradle build
+
+build:
+    FROM +deps
+    COPY src src
+    RUN gradle build
+    RUN gradle install
+    SAVE ARTIFACT build/install/java-example/bin AS LOCAL build/bin
+    SAVE ARTIFACT build/install/java-example/lib AS LOCAL build/lib
+
+docker:
+    COPY +build/bin bin
+    COPY +build/lib lib
+    ARG tag='latest'
+    ENTRYPOINT ["/java-example/bin/java-example"]
+    SAVE IMAGE java-example:$tag
+```
+
+</details>
+
+
+<details open>
+<summary>Python</summary>
+
+To copy the files for [this example ( Part 3 )](https://github.com/earthly/earthly/tree/main/examples/tutorial/python/part5) run
+
+```bash
+earthly --artifact github.com/earthly/earthly/examples/tutorial/python:main+part5/part5 ./part5
+```
+
+`./Earthfile`
+
+```Dockerfile
+VERSION 0.6
+FROM python:3
+WORKDIR /code
+
+deps:
+    RUN pip install wheel
+    COPY requirements.txt ./
+    RUN pip wheel -r requirements.txt --wheel-dir=wheels
+    SAVE ARTIFACT wheels /wheels
+
+build:
+    FROM +deps
+    COPY src src
+    SAVE ARTIFACT src /src
+
+docker:
+    COPY +deps/wheels wheels
+    COPY +build/src src
+    COPY requirements.txt ./
+    ARG tag='latest'
+    RUN pip install --no-index --find-links=wheels -r requirements.txt
+    ENTRYPOINT ["python3", "./src/hello.py"]
+    SAVE IMAGE python-example:$tag
+```
+
+</details>
