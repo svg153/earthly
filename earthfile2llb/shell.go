@@ -67,9 +67,10 @@ func strWithEnvVarsAndDocker(args []string, envVars []string, withShell, withDeb
 		cmdParts = append(cmdParts, "/bin/sh", "-c")
 		cmdParts = append(cmdParts, fmt.Sprintf("'%s'", strings.Join(escapedArgs, " ")))
 	} else {
-		for _, arg := range args {
-			cmdParts = append(cmdParts, "'"+escapeShellSingleQuotes(arg)+"'")
-		}
+		cmdParts = append(cmdParts, args...)
+		//for _, arg := range args {
+		//	cmdParts = append(cmdParts, "'"+escapeShellSingleQuotes(arg)+"'") // THIS BROKE --entrypoint, can't do this.
+		//}
 	}
 	return strings.Join(cmdParts, " ")
 }
@@ -77,6 +78,7 @@ func strWithEnvVarsAndDocker(args []string, envVars []string, withShell, withDeb
 type shellWrapFun func(args []string, envVars []string, withShell, withDebugger, forceDebugger bool) []string
 
 func withShellAndEnvVars(args []string, envVars []string, withShell, withDebugger, forceDebugger bool) []string {
+	//fmt.Printf("in withShellAndEnvVars with %d args: %s; withShell: %v debugger: %v\n", len(args), args, withShell, withDebugger)
 	return []string{
 		"/bin/sh", "-c",
 		strWithEnvVarsAndDocker(args, envVars, withShell, withDebugger, forceDebugger, false, "", ""),

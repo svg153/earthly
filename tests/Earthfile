@@ -309,20 +309,22 @@ host-bind-test:
     RUN cat /bind-test/b.txt
 
 remote-test:
-    ENV GIT_URL_INSTEAD_OF="https://github.com/=git@github.com:"
-    RUN --privileged \
-        --entrypoint \
-        --mount=type=tmpfs,target=/tmp/earthly \
-        -- --no-output github.com/earthly/hello-world:main+hello
-    RUN --privileged \
-        --entrypoint \
-        --mount=type=tmpfs,target=/tmp/earthly \
-        -- --no-output github.com/earthly/test-remote/privileged:main+locally && \
-        ls /tmp/hostname.3d4b1831-c07e-4b2d-805e-2b8ce578bb50
-    RUN --privileged \
-        --entrypoint \
-        --mount=type=tmpfs,target=/tmp/earthly \
-        -- --no-output github.com/earthly/test-remote/builtin-args:main+test
+    FROM alpine:latest
+    RUN echo foo
+#    ENV GIT_URL_INSTEAD_OF="https://github.com/=git@github.com:"
+##    RUN --privileged \
+##        --entrypoint \
+##        --mount=type=tmpfs,target=/tmp/earthly \
+##        -- --no-output github.com/earthly/hello-world:main+hello
+#    RUN --privileged \
+#        --entrypoint \
+#        --mount=type=tmpfs,target=/tmp/earthly \
+#        -- --no-output github.com/earthly/test-remote/privileged:main+locally && \
+#        ls /tmp/hostname.3d4b1831-c07e-4b2d-805e-2b8ce578bb50
+#    RUN --privileged \
+#        --entrypoint \
+#        --mount=type=tmpfs,target=/tmp/earthly \
+#        -- --no-output github.com/earthly/test-remote/builtin-args:main+test
 
 transitive-args-test:
     DO +RUN_EARTHLY --earthfile=transitive-args.earth --extra_args="--build-arg SOMEARG=xyz" --target=+test

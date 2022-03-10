@@ -666,11 +666,14 @@ func (c *Converter) RunCommandOutput(ctx context.Context, cmd string) (string, e
 	// "exec 1<>/output" is equivalent to appending ">/output"
 	// this is to limit the errornous effect of cmd containing something that isn't
 	// correctly escaped (e.g. "echo whoops # ignore the rest")
-	args := []string{"/bin/sh", "-c", fmt.Sprintf("exec 1<>%s && %s", outputFile, cmd)} // TODO double check running env will show all ARGs
+	//args := []string{"/bin/sh", "-c", fmt.Sprintf("exec 1<>%s && %s", outputFile, cmd)} // TODO double check running env will show all ARGs
+	args := []string{fmt.Sprintf("exec 1<>%s && %s", outputFile, cmd)} // TODO double check running env will show all ARGs
 
 	opts := ConvertRunOpts{
-		CommandName: fmt.Sprintf("expanding :::%s:::", cmd),
+		CommandName: fmt.Sprintf("expanding $(%s)", cmd),
 		Args:        args,
+		WithShell:   true,
+		shellWrap:   withShellAndEnvVars,
 		Transient:   true,
 	}
 
@@ -683,7 +686,6 @@ func (c *Converter) RunCommandOutput(ctx context.Context, cmd string) (string, e
 	// Perform execution, but append the command with the right shell incantation that
 	// causes it to output to a file. This is done via the shellWrap.
 	//opts.shellWrap = withShellAndEnvVarsOutput(outputFile)
-	opts.WithShell = false
 	state, err := c.internalRun(ctx, opts)
 	if err != nil {
 		return "", err
@@ -1566,6 +1568,7 @@ func (c *Converter) internalRun(ctx context.Context, opts ConvertRunOpts) (pllb.
 	}
 
 	finalArgs := opts.Args[:]
+	//fmt.Printf("internalRun with %v\n", finalArgs)
 	if opts.WithEntrypoint {
 		if len(finalArgs) == 0 {
 			// No args provided. Use the image's CMD.
@@ -1646,6 +1649,7 @@ func (c *Converter) internalRun(ctx context.Context, opts ConvertRunOpts) (pllb.
 			finalArgs...)
 	}
 
+	//fmt.Printf("internalRun append with %v\n", finalArgs)
 	runOpts = append(runOpts, llb.Args(finalArgs))
 	if opts.NoCache || opts.Locally || opts.Push || isInteractive {
 		runOpts = append(runOpts, llb.IgnoreCache)

@@ -542,6 +542,7 @@ func (i *Interpreter) handleRun(ctx context.Context, cmd spec.Command) error {
 		opts.Mounts[index] = expanded
 	}
 	// Note: Not expanding args for the run itself, as that will be take care of by the shell.
+	//fmt.Printf("handleRun args: %v (total: %d)\n", args, len(args))
 
 	if opts.Privileged && !i.allowPrivileged {
 		return i.errorf(cmd.SourceLocation, "Permission denied: unwilling to run privileged command; did you reference a remote Earthfile without the --allow-privileged flag?")
