@@ -1659,7 +1659,7 @@ func (i *Interpreter) pushOnlyErr(sl *spec.SourceLocation) error {
 }
 
 func (i *Interpreter) expandArgs(ctx context.Context, word string, keepPlusEscape bool) (string, error) {
-	ret, err := i.converter.ExpandArgs(ctx, escapeSlashPlus(word))
+	ret, err := i.converter.ExpandArgs(ctx, i.local, escapeSlashPlus(word))
 	if err != nil {
 		return "", nil
 	}

@@ -651,37 +651,59 @@ func (c *Converter) RunExpression(ctx context.Context, expressionName string, op
 
 // RunCommandOutput evalues a command and returns the output. The run is transient - any state created
 // is not used in subsequent commands.
-func (c *Converter) RunCommandOutput(ctx context.Context, cmd string) (string, error) {
+func (c *Converter) RunCommandOutput(ctx context.Context, locally bool, cmd string) (string, error) {
+	// unfortunately this can't be combined with RunExpression
+	// because RunExpression expects a string to be evaluated and always prefixes it with `echo`.
+
+	// e.g. running "hello $(cat /data | base64 -d) world"
+	// detects the command "cat /data | base64 -d" needs to be run,
+	// when it's passed to RunExpression, it ends up as "echo cat /data | base64 -d > outputfile"
+	//
+	// it ultimately ends up running: echo cat
+
+	// However this does work:
+
 	err := c.checkAllowed(runCmd)
 	if err != nil {
 		return "", err
 	}
 	c.nonSaveCommand()
 
-	var outputFile string
+	commandName := "earthly-run-command-output" // TODO does this need to be unique?
 
-	srcBuildArgDir := "/run/buildargs"
-	outputFile = path.Join(srcBuildArgDir, "todo-name")
+	opts := ConvertRunOpts{
+		CommandName: fmt.Sprintf("expanding $(%s)", cmd),
+		WithShell:   true,
+		shellWrap:   withShellAndEnvVars,
+		Transient:   true,
+		Locally:     locally,
+	}
+
+	var outputFile string
+	if locally {
+		outputDir, err := os.MkdirTemp(os.TempDir(), "earthlyexproutput")
+		if err != nil {
+			return "", errors.Wrap(err, "create temp dir")
+		}
+		outputFile = filepath.Join(outputDir, "/output")
+		c.opt.CleanCollection.Add(func() error {
+			return os.RemoveAll(outputDir)
+		})
+	} else {
+		srcBuildArgDir := "/run/buildargs"
+		outputFile = path.Join(srcBuildArgDir, commandName)
+		opts.statePrep = func(ctx context.Context, state pllb.State) (pllb.State, error) {
+			return state.File(
+				pllb.Mkdir(srcBuildArgDir, 0777, llb.WithParents(true)), // Mkdir is performed as root even when USER is set; we must use 0777
+				llb.WithCustomNamef("[internal] mkdir %s", srcBuildArgDir)), nil
+		}
+	}
 
 	// "exec 1<>/output" is equivalent to appending ">/output"
 	// this is to limit the errornous effect of cmd containing something that isn't
 	// correctly escaped (e.g. "echo whoops # ignore the rest")
 	//args := []string{"/bin/sh", "-c", fmt.Sprintf("exec 1<>%s && %s", outputFile, cmd)} // TODO double check running env will show all ARGs
-	args := []string{fmt.Sprintf("exec 1<>%s && %s", outputFile, cmd)} // TODO double check running env will show all ARGs
-
-	opts := ConvertRunOpts{
-		CommandName: fmt.Sprintf("expanding $(%s)", cmd),
-		Args:        args,
-		WithShell:   true,
-		shellWrap:   withShellAndEnvVars,
-		Transient:   true,
-	}
-
-	opts.statePrep = func(ctx context.Context, state pllb.State) (pllb.State, error) {
-		return state.File(
-			pllb.Mkdir(srcBuildArgDir, 0777, llb.WithParents(true)), // Mkdir is performed as root even when USER is set; we must use 0777
-			llb.WithCustomNamef("[internal] mkdir %s", srcBuildArgDir)), nil
-	}
+	opts.Args = []string{fmt.Sprintf("exec 1<>'%s' && %s", escapeShellSingleQuotes(outputFile), cmd)} // TODO double check running env will show all ARGs
 
 	// Perform execution, but append the command with the right shell incantation that
 	// causes it to output to a file. This is done via the shellWrap.
@@ -692,17 +714,23 @@ func (c *Converter) RunCommandOutput(ctx context.Context, cmd string) (string, e
 	}
 
 	var outputDt []byte
-	ref, err := llbutil.StateToRef(ctx, c.opt.GwClient, state, c.opt.NoCache, c.opt.Platform, c.opt.CacheImports.AsMap())
-	if err != nil {
-		return "", errors.Wrapf(err, "build arg state to ref")
-	}
-	outputDt, err = ref.ReadFile(ctx, gwclient.ReadRequest{Filename: outputFile})
-	if err != nil {
-		return "", errors.Wrapf(err, "non constant build arg read request")
+	if locally {
+		outputDt, err = os.ReadFile(outputFile)
+		if err != nil {
+			return "", errors.Wrap(err, "read exit code file")
+		}
+	} else {
+		ref, err := llbutil.StateToRef(ctx, c.opt.GwClient, state, c.opt.NoCache, c.opt.Platform, c.opt.CacheImports.AsMap())
+		if err != nil {
+			return "", errors.Wrapf(err, "build arg state to ref")
+		}
+		outputDt, err = ref.ReadFile(ctx, gwclient.ReadRequest{Filename: outputFile})
+		if err != nil {
+			return "", errors.Wrapf(err, "non constant build arg read request")
+		}
 	}
 	// shelling-out removes trailing newlines (bash does this too)
 	outputDt = bytes.TrimSuffix(outputDt, []byte("\n"))
-	//fmt.Printf("RunCommandOutput %q -> %q\n", cmd, string(outputDt))
 	return string(outputDt), nil
 }
 
@@ -1377,9 +1405,9 @@ func (c *Converter) FinalizeStates(ctx context.Context) (*states.MultiTarget, er
 }
 
 // ExpandArgs expands args in the provided word.
-func (c *Converter) ExpandArgs(ctx context.Context, word string) (string, error) {
+func (c *Converter) ExpandArgs(ctx context.Context, locally bool, word string) (string, error) {
 	shellOut := func(cmd string) (string, error) {
-		output, err := c.RunCommandOutput(ctx, cmd)
+		output, err := c.RunCommandOutput(ctx, locally, cmd)
 		if err != nil {
 			return "", err
 		}
